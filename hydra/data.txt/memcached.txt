@@ -1,0 +1,4 @@
+# open UDP memcached — scan 11211/udp to refresh
+137.74.146.14
+45.55.213.10
+159.203.176.61

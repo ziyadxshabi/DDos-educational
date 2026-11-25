@@ -1,0 +1,20 @@
+name: Bug
+description: Something did not work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Command, expected, actual.
+    validations: { required: true }
+  - type: input
+    id: check
+    attributes:
+      label: Output of `make check`
+    validations: { required: true }
+  - type: input
+    id: env
+    attributes:
+      label: Distro, kernel, NIC, link speed
+    validations: { required: true }
