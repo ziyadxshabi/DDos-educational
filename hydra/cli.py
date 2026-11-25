@@ -4,22 +4,26 @@ from __future__ import annotations
 import argparse
 import multiprocessing as mp
 import os
-import resource
 import signal
 import socket
 import sys
 import time
+
+try:
+    import resource
+except ImportError:
+    resource = None  # type: ignore[assignment]
 
 from . import __version__
 from .runtime import proc_main
 from .vectors import RAW, VECTORS
 
 
-def parse() -> tuple[argparse.Namespace, list[str]]:
+def parse(argv: list[str] | None = None) -> tuple[argparse.Namespace, list[str]]:
     p = argparse.ArgumentParser(
         prog="hydra",
-        description="multi-vector packet and request flood engine",
-        epilog="raw vectors require root or CAP_NET_RAW",
+        description="multi-vector packet and request traffic engine for isolated lab testing",
+        epilog="raw vectors require root or CAP_NET_RAW on Linux",
     )
     p.add_argument("host", help="target host or IP")
     p.add_argument("-p", "--port", type=int, default=80)
@@ -45,7 +49,7 @@ def parse() -> tuple[argparse.Namespace, list[str]]:
     p.add_argument("--junk", action="store_true", help="pad raw packets")
     p.add_argument("--check", action="store_true", help="report and exit")
     p.add_argument("-V", "--version", action="version", version=f"hydra {__version__}")
-    a = p.parse_args()
+    a = p.parse_args(argv)
 
     if a.method == "all":
         a.method = ",".join(VECTORS)
@@ -59,21 +63,24 @@ def parse() -> tuple[argparse.Namespace, list[str]]:
 
 
 def preflight(selected: list[str]) -> None:
-    if os.geteuid() != 0 and set(selected) & RAW:
+    if hasattr(os, "geteuid") and os.geteuid() != 0 and set(selected) & RAW:
         sys.exit("raw vectors need root; rerun with sudo or pick layer-7 vectors")
-    soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
-    resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
+    if resource is not None:
+        _, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+        resource.setrlimit(resource.RLIMIT_NOFILE, (hard, hard))
 
 
-def report(args, dst: str, selected: list[str]) -> None:
+def report(args: argparse.Namespace, dst: str, selected: list[str]) -> None:
+    nofile = resource.getrlimit(resource.RLIMIT_NOFILE)[1] if resource is not None else "n/a"
+    is_root = os.geteuid() == 0 if hasattr(os, "geteuid") else False
     print(f"version    : {__version__}")
     print(f"target     : {args.host} -> {dst}:{args.port}")
     print(f"vectors    : {', '.join(selected)}")
     print(f"procs      : {args.procs}   threads: {args.threads}")
     print(f"spoof      : {args.spoof}")
     print(f"rate/worker: {args.rate or 'unlimited'}")
-    print(f"nofile     : {resource.getrlimit(resource.RLIMIT_NOFILE)[1]}")
-    print(f"root       : {os.geteuid() == 0}")
+    print(f"nofile     : {nofile}")
+    print(f"root       : {is_root}")
     print("ok")
 
 

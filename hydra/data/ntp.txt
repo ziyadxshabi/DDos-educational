@@ -1,0 +1,3 @@
+# RFC 5737 TEST-NET-2 placeholders — replace with isolated lab NTP hosts
+198.51.100.123
+198.51.100.124

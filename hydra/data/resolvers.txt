@@ -1,0 +1,3 @@
+# RFC 5737 TEST-NET-1 placeholders — replace with isolated lab resolvers
+192.0.2.53
+192.0.2.54

@@ -1,4 +1,4 @@
-"""Per-process shared attack context and list loading."""
+"""Per-process shared context and reflector list loading."""
 from __future__ import annotations
 
 import ipaddress
@@ -8,26 +8,37 @@ from pathlib import Path
 _DATA = Path(__file__).parent / "data"
 
 
+def _local_ip(dst: str) -> str:
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+        try:
+            s.connect((dst, 80))
+            return s.getsockname()[0]
+        except OSError:
+            return "127.0.0.1"
+
+
 def load_list(path: str | None, default: str) -> list[str]:
     """Load a reflector list from a file, or fall back to a packaged default."""
-    if path:
-        return [l.strip() for l in Path(path).read_text().splitlines()
-                if l.strip() and not l.startswith("#")]
-    return [l.strip() for l in (_DATA / default).read_text().splitlines()
-            if l.strip() and not l.startswith("#")]
+    target = Path(path) if path else (_DATA / default)
+    return [
+        line.strip()
+        for line in target.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.startswith("#")
+    ]
 
 
 class Ctx:
-    """Immutable-ish attack parameters plus lazily created raw sockets."""
+    """Immutable-ish parameters plus lazily created raw sockets."""
 
-    __slots__ = ("dst", "dport", "target_host", "net", "domain", "resolvers",
-                 "ntp", "memcached", "ssdp", "cldap", "uas", "ssl", "path",
-                 "method", "junk", "keepalive", "sock", "udp_sock")
+    __slots__ = ("dst", "dport", "target_host", "net", "src_ip", "domain",
+                 "resolvers", "ntp", "memcached", "ssdp", "cldap", "uas",
+                 "ssl", "path", "method", "junk", "keepalive", "sock", "udp_sock")
 
     def __init__(self, args, dst: str):
         self.dst = dst
         self.dport = args.port
         self.target_host = args.host
+        self.src_ip = _local_ip(dst) if args.spoof == "off" else None
         self.net = (ipaddress.ip_network(args.spoof)
                     if args.spoof not in ("off", "auto") else None)
         self.domain = args.domain or args.host

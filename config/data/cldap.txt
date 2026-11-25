@@ -1,1 +1,0 @@
-# open LDAP / Active Directory — scan 389/udp to refresh
