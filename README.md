@@ -31,3 +31,10 @@ python3 -m hydra 192.0.2.10 -p 443 --ssl -m http --http-method POST -t 200 -r 50
 # Preflight check without sending traffic
 python3 -m hydra 192.0.2.10 -p 443 -m all --check
 FlagMeaning-mComma-separated vectors, or all-tTotal worker threads, split across --procs--procsWorker processes (bypasses the Python GIL)-rOperations/sec per worker (0 = unthrottled)--spoofauto, off (uses host IP), or a source CIDR-dDuration in seconds--junkPad raw TCP SYN packets with random bytes--checkPrint resolved target/capability report and exitVectorsVectorLayerSpoofs SourceLab Use CasesynL4yesTCP SYN backlog and SYN-cookie testingackL4yesStateful firewall and conntrack table evaluationpshL4yesTCP payload processing throughputudpL4yesRaw UDP bandwidth and packet-rate testingdnsL4 reflyesEDNS0 4096-byte buffer amplification mechanicsntpL4 reflyesLegacy NTP mode-7 monlist packet structurememcachedL4 reflyesUDP stats items amplification mechanicsssdpL4 reflyesUPnP M-SEARCH discovery behaviorcldapL4 reflyesConnectionless LDAP rootDSE query behaviorhttpL7noHTTP/HTTPS request concurrencyslowlorisL7noPartial HTTP header accumulationrudyL7noSlow HTTP POST body transmissionDocs & Legal01 — Vectors · 02 — Tuning · 05 — Scale · 06 — Troubleshooting · 07 — Legal · 08 — RoadmapAuthorized educational and isolated lab testing only. See docs/07-legal.md and CONTRIBUTING.md.
+
+## use and legality
+Legal & Ethics Authorized educational and isolated lab testing only. Transmitting flood traffic or spoofed packets against any network, server, or public resolver without explicit written authorization from the owner is illegal.
+
+Test only in isolated labs: Run hydra exclusively against local VMs or private lab hosts you own.
+
+Never target public reflectors: hydra/data/*.txt ships with RFC 5737 documentation placeholders; never populate them with third-party public IPs.
